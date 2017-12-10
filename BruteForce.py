@@ -1,9 +1,9 @@
 import time
 import string
 
-maxattempts = 10000000
+maxattempts = 10000000 #max of retry
 start       = time.time()
-chars       = list(string.printable)[:95]
+chars       = list(string.printable)[:30] #max password chars
 base        = len(chars)
 n           = 0
 solved      = False
