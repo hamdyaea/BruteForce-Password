@@ -1,56 +1,47 @@
-import time
+#!/usr/bin/env python3
+# Developer: Hamdy Abou El Anein
+# Contact: hamdy.aea@protonmail.com
+"""Bounded, offline demonstration using a caller-supplied toy password."""
+import argparse
+from itertools import product
 import string
 
-maxattempts = 100000000000000000000000000000 #max of retry
-start       = time.time()
-chars       = list(string.printable)[:30] #max password chars
-base        = len(chars)
-n           = 0
-solved      = False
-password    = input("Enter your password:")
+DEFAULT_ALPHABET = string.digits + string.ascii_lowercase[:20]
 
 
-print(chars)
+def find_password(password, alphabet=DEFAULT_ALPHABET, max_attempts=100000):
+    if not alphabet or len(set(alphabet)) != len(alphabet):
+        raise ValueError("Alphabet must contain unique characters.")
+    if not 1 <= max_attempts <= 1000000:
+        raise ValueError("Attempt limit must be between 1 and 1000000.")
+    if any(character not in alphabet for character in password):
+        raise ValueError("Password contains characters outside the alphabet.")
+    if not password:
+        return "", 0
+    attempts = 0
+    for length in range(1, len(password) + 1):
+        for candidate in product(alphabet, repeat=length):
+            attempts += 1
+            word = "".join(candidate)
+            if word == password:
+                return word, attempts
+            if attempts >= max_attempts:
+                return None, attempts
+    return None, attempts
 
 
-def numberToBase(n, b):
-    digits = []
-    while n:
-        digits.append(int(n % b))
-        n //= b
-    return digits[::-1]
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--demo", default="00", help="Toy string only; do not enter a real password")
+    parser.add_argument("--max-attempts", type=int, default=100000)
+    args = parser.parse_args()
+    try:
+        found, attempts = find_password(args.demo, max_attempts=args.max_attempts)
+    except ValueError as exc:
+        parser.error(str(exc))
+    print(f"{'Found' if found is not None else 'Limit reached'} after {attempts} attempts.")
+    return 0 if found is not None else 1
 
 
-
-if password == '':
-    print('Your password is empty')
-    solved = True
-    
-elif password == chars[n]:
-    print('Your password is ' + chars[n])
-    solved = True
-    
-else:
-    n = 1
-
-if not solved:
-    while n < maxattempts:
-        lst = numberToBase(n, base)
-        print(lst)
-        word = ''
-        for x in lst:
-            word += str(chars[x])
-        print(word)
-        if password == word:
-            solved = True
-            print('-Stats-')
-            print('Pass: ' + word)
-            print('Attempts: ' + str(n))
-            print('time: ' + str((time.time() - start)) + ' sec')
-            break
-        else:
-            n += 1
-
-
-if not solved:
-    print('Unsolved after ' + str(n) + ' attempts!')
+if __name__ == "__main__":
+    raise SystemExit(main())
